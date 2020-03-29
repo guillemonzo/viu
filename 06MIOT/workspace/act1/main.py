@@ -125,7 +125,7 @@ if __name__ == "__main__":
     # Use DB
     data_base = client.act1
 
-    # insert_to_mongo(data_base, json)
+    insert_to_mongo(data_base, json)
     get_accidents_grouped_by_day_and_time(data_base)
 
     get_top_neighbourhoods_with_more_accidents(data_base)
