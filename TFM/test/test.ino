@@ -46,7 +46,7 @@ void os_getArtEui (u1_t* buf) { }
 void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
-byte data[1];
+static uint8_t mydata[] = "Hello, world!";
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
@@ -63,8 +63,8 @@ const lmic_pinmap lmic_pins = {
 
 const int TRIGGER_PIN = 3;
 const int ECHO_PIN = 5;
-const int DISTANCE_THRESHOLD = 30;
-int distance = 0;
+const int DISTANCE_THRESHOLD = 5;
+
 
 void onEvent (ev_t ev) {
     Serial.print(os_getTime());
@@ -136,43 +136,12 @@ void do_send(osjob_t* j){
     // Check if there is not a current TX/RX job running
     if (LMIC.opmode & OP_TXRXPEND) {
         Serial.println(F("OP_TXRXPEND, not sending"));
-    } else {
-        
-        // Calculate the time to receive the echo and multiply it by the speed of in cm/microsecond divided by two
-        distance = 0.01723 * readUltrasonicDistance();
-        Serial.print(distance);
-        Serial.println("cm"); // Print the distance in cm
-        if(distance < DISTANCE_THRESHOLD){
-          data[0] = 0; // Byte representation of "0"
-        }
-        else{
-          data[0] = 1; // Byte representation of "1"
-        }        
-        Serial.println("Payload:");
-        Serial.println(data[0]);
-
+    } else { 
         // Prepare upstream data transmission at the next possible time.        
-        LMIC_setTxData2(1, data, sizeof(data)-1, 0);
+        LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
         Serial.println(F("Packet queued"));
     }
     // Next TX is scheduled after TX_COMPLETE event.
-}
-
-// Return the milliseconds to reach an object
-long readUltrasonicDistance(){
-    pinMode(TRIGGER_PIN, OUTPUT);  // Ponemos el pin del disparador en modo salida
-    digitalWrite(TRIGGER_PIN, LOW); // Inicializamos el disparador a LOW durante 2 microsegundos
-    delayMicroseconds(2); 
-    // Inicializamos el disparador a HIGH durante 10 microsegundos. En este momento el módulo emite las 8 ondas a 40KHz
-    digitalWrite(TRIGGER_PIN, HIGH);
-    delayMicroseconds(10);
-    // Volvemos a poner a LOW el disparador
-    digitalWrite(TRIGGER_PIN, LOW);
-    // Ponemos el pin que recibe el eco de la onda en modo entrada
-    pinMode(ECHO_PIN, INPUT);
-    // Devolvemos el tiempo en microsegundos que tarda en recibirse la onda en el pin eco
-    Serial.println("Return");
-    return pulseIn(ECHO_PIN, HIGH);
 }
 
 
